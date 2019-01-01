@@ -1,0 +1,26 @@
+{
+    "name": "easycheck",
+    "version": "0.0.1",
+    "author": "Michael Hanus <mh@informatik.uni-kiel.de>",
+    "synopsis": "Libraries for automated, property-based testing of Curry programs",
+    "category": [ "Testing" ],
+    "license": "BSD-3-Clause",
+    "licenseFile": "LICENSE",
+    "dependencies": {
+        "base"       : ">= 1.0.0, < 2.0.0",
+        "searchtree" : ">= 1.0.0"
+    },
+    "exportedModules": [ "Test.Prop", "Test.EasyCheck", "Test.EasyCheck.Exec" ],
+    "compilerCompatibility": {
+        "pakcs": ">= 2.0.0",
+        "kics2": ">= 2.0.0"
+    },
+    "testsuite": {
+        "src-dir": "test",
+        "modules": [ "ExampleTests" ]
+    },
+    "source": {
+        "git": "https://git.ps.informatik.uni-kiel.de/curry-packages/easycheck.git",
+        "tag": "$version"
+    }
+}
