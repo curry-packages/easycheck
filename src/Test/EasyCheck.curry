@@ -13,7 +13,7 @@
 --- are contained in the accompanying library `Test.EasyCheckExec`.
 ---
 --- @author Sebastian Fischer (with extensions by Michael Hanus)
---- @version December 2018
+--- @version January 2019
 -------------------------------------------------------------------------
 
 module Test.EasyCheck (
@@ -45,6 +45,8 @@ import Control.Findall      ( getAllValues )
 import Control.SearchTree   ( SearchTree, someSearchTree )
 import Control.SearchTree.Traversal
 
+import Test.Prop.Types
+
 infix  1 `is`, `isAlways`, `isEventually`
 infix  1 -=-, <~>, ~>, <~, <~~>, `trivial`, #, #<, #>, <=>
 infix  1 `returns`, `sameReturns`
@@ -52,8 +54,7 @@ infixr 0 ==>
 
 
 -------------------------------------------------------------------------
---- Abstract type to represent properties involving IO actions.
-data PropIO = PropIO (Bool -> String -> IO (Maybe String))
+-- Properties involving I/O actions:
 
 --- The property `returns a x` is satisfied if the execution of the
 --- I/O action `a` returns the value `x`.
@@ -100,18 +101,7 @@ hasIOError act quiet msg =
          (\_ -> unless quiet (putStr (msg++": OK\n")) >> return Nothing)
 
 -------------------------------------------------------------------------
---- Abstract type to represent a single test for a property to be checked.
---- A test consists of the result computed for this test,
---- the arguments used for this test, and the labels possibly assigned
---- to this test by annotating properties.
-data Test = Test Result [String] [String]
-
---- Data type to represent the result of checking a property.
-data Result = Undef | Ok | Falsified [String] | Ambigious [Bool] [String]
-
---- Abstract type to represent properties to be checked.
---- Basically, it contains all tests to be executed to check the property.
-data Prop = Prop [Test]
+-- Some auxiliaries:
 
 --- Extracts the tests of a property (used by the test runner).
 testsOf :: Prop -> [Test]
