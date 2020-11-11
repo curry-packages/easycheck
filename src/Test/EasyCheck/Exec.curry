@@ -6,7 +6,7 @@
 --- the tests.
 ---
 --- @author Sebastian Fischer (with extensions by Michael Hanus)
---- @version December 2018
+--- @version November 2020
 -------------------------------------------------------------------------
 
 module Test.EasyCheck.Exec (
@@ -28,12 +28,12 @@ module Test.EasyCheck.Exec (
   checkPropWithMsg, checkPropIOWithMsg
   ) where
 
-import Distribution    ( curryCompiler )
-import IO              ( hFlush, stdout )
-import List            ( group, intersperse, nub )
-import Sort            ( leqList, leqString, sortBy )
+import Control.Monad   ( unless )
+import System.IO       ( hFlush, stdout )
+import Data.List       ( group, intersperse, nub, sortBy )
 
-import Control.Findall ( getAllValues )
+import Control.Findall                ( getAllValues )
+import Language.Curry.Distribution    ( curryCompiler )
 
 import Test.EasyCheck
 
@@ -82,7 +82,7 @@ quietConfig = easyConfig { isQuiet = True, every = (\_ _ -> "") }
 
 -- Note that this does not work with PAKCS! However, if CurryCheck is used,
 -- this operation is not replaced by explicit generator operations.
-suc :: Show b => (a -> Prop) -> (b -> a) -> Prop
+suc :: (Data b, Show b) => (a -> Prop) -> (b -> a) -> Prop
 suc n = forAllValues n (valuesOf unknown)
 
 --- Checks a unit test with a given configuration (first argument)
@@ -165,21 +165,22 @@ checkWithValues5 config msg xs ys zs1 zs2 zs3 p =
 --- with a given configuration (first argument)
 --- and a name for the test (second argument).
 --- Returns a flag whether the test was successful.
-check1 :: Show a => Config -> String -> (a -> Prop) -> IO Bool
+check1 :: (Data a, Show a) => Config -> String -> (a -> Prop) -> IO Bool
 check1 config msg = check config msg . suc id
 
 --- Checks a property parameterized over two arguments
 --- with a given configuration (first argument)
 --- and a name for the test (second argument).
 --- Returns a flag whether the test was successful.
-check2 :: (Show a, Show b) => Config -> String -> (a -> b -> Prop) -> IO Bool
+check2 :: (Data a, Data b, Show a, Show b) =>
+          Config -> String -> (a -> b -> Prop) -> IO Bool
 check2 config msg = check config msg . suc (suc id)
 
 --- Checks a property parameterized over three arguments
 --- with a given configuration (first argument)
 --- and a name for the test (second argument).
 --- Returns a flag whether the test was successful.
-check3 :: (Show a, Show b, Show c) =>
+check3 :: (Data a, Data b, Data c, Show a, Show b, Show c) =>
           Config -> String -> (a -> b -> c -> Prop) -> IO Bool
 check3 config msg = check config msg . suc (suc (suc id))
 
@@ -187,7 +188,7 @@ check3 config msg = check config msg . suc (suc (suc id))
 --- with a given configuration (first argument)
 --- and a name for the test (second argument).
 --- Returns a flag whether the test was successful.
-check4 :: (Show a, Show b, Show c, Show d) =>
+check4 :: (Data a, Data b, Data c, Data d, Show a, Show b, Show c, Show d) =>
           Config -> String -> (a -> b -> c -> d -> Prop) -> IO Bool
 check4 config msg = check config msg . suc (suc (suc (suc id)))
 
@@ -195,7 +196,8 @@ check4 config msg = check config msg . suc (suc (suc (suc id)))
 --- with a given configuration (first argument)
 --- and a name for the test (second argument).
 --- Returns a flag whether the test was successful.
-check5 :: (Show a, Show b, Show c, Show d, Show e) =>
+check5 :: (Data a, Data b, Data c, Data d, Data e,
+           Show a, Show b, Show c, Show d, Show e) =>
           Config -> String -> (a -> b -> c -> d -> e -> Prop) -> IO Bool
 check5 config msg = check config msg . suc (suc (suc (suc (suc id))))
 
@@ -210,21 +212,22 @@ easyCheck0 = check0 easyConfig
 --- according to the default configuration
 --- and a name for the test (first argument).
 --- Returns a flag whether the test was successful.
-easyCheck1 :: Show a => String -> (a -> Prop) -> IO Bool
+easyCheck1 :: (Data a, Show a) => String -> (a -> Prop) -> IO Bool
 easyCheck1 = check1 easyConfig
 
 --- Checks a property parameterized over two arguments
 --- according to the default configuration
 --- and a name for the test (first argument).
 --- Returns a flag whether the test was successful.
-easyCheck2 :: (Show a, Show b) => String -> (a -> b -> Prop) -> IO Bool
+easyCheck2 :: (Data a, Data b, Show a, Show b) =>
+              String -> (a -> b -> Prop) -> IO Bool
 easyCheck2 = check2 easyConfig
 
 --- Checks a property parameterized over three arguments
 --- according to the default configuration
 --- and a name for the test (first argument).
 --- Returns a flag whether the test was successful.
-easyCheck3 :: (Show a, Show b, Show c) =>
+easyCheck3 :: (Data a, Data b, Data c, Show a, Show b, Show c) =>
               String -> (a -> b -> c -> Prop) -> IO Bool
 easyCheck3 = check3 easyConfig
 
@@ -232,7 +235,8 @@ easyCheck3 = check3 easyConfig
 --- according to the default configuration
 --- and a name for the test (first argument).
 --- Returns a flag whether the test was successful.
-easyCheck4 :: (Show a, Show b, Show c, Show d) =>
+easyCheck4 :: (Data a, Data b, Data c, Data d,
+               Show a, Show b, Show c, Show d) =>
               String -> (a -> b -> c -> d -> Prop) -> IO Bool
 easyCheck4 = check4 easyConfig
 
@@ -240,7 +244,8 @@ easyCheck4 = check4 easyConfig
 --- according to the default configuration
 --- and a name for the test (first argument).
 --- Returns a flag whether the test was successful.
-easyCheck5 :: (Show a, Show b, Show c, Show d, Show e) =>
+easyCheck5 :: (Data a, Data b, Data c, Data d, Data e,
+               Show a, Show b, Show c, Show d, Show e) =>
               String -> (a -> b -> c -> d -> e -> Prop) -> IO Bool
 easyCheck5 = check5 easyConfig
 
@@ -254,21 +259,22 @@ verboseCheck0 = check0 verboseConfig
 --- according to the verbose configuration
 --- and a name for the test (first argument).
 --- Returns a flag whether the test was successful.
-verboseCheck1 :: Show a => String -> (a -> Prop) -> IO Bool
+verboseCheck1 :: (Data a, Show a) => String -> (a -> Prop) -> IO Bool
 verboseCheck1 = check1 verboseConfig
 
 --- Checks a property parameterized over two arguments
 --- according to the verbose configuration
 --- and a name for the test (first argument).
 --- Returns a flag whether the test was successful.
-verboseCheck2 :: (Show a, Show b) => String -> (a -> b -> Prop) -> IO Bool
+verboseCheck2 :: (Data a, Data b, Show a, Show b) =>
+                 String -> (a -> b -> Prop) -> IO Bool
 verboseCheck2 = check2 verboseConfig
 
 --- Checks a property parameterized over three arguments
 --- according to the verbose configuration
 --- and a name for the test (first argument).
 --- Returns a flag whether the test was successful.
-verboseCheck3 :: (Show a, Show b, Show c) =>
+verboseCheck3 :: (Data a, Data b, Data c, Show a, Show b, Show c) =>
                  String -> (a -> b -> c -> Prop) -> IO Bool
 verboseCheck3 = check3 verboseConfig
 
@@ -276,7 +282,8 @@ verboseCheck3 = check3 verboseConfig
 --- according to the verbose configuration
 --- and a name for the test (first argument).
 --- Returns a flag whether the test was successful.
-verboseCheck4 :: (Show a, Show b, Show c, Show d) =>
+verboseCheck4 :: (Data a, Data b, Data c, Data d,
+                  Show a, Show b, Show c, Show d) =>
                  String -> (a -> b -> c -> d -> Prop) -> IO Bool
 verboseCheck4 = check4 verboseConfig
 
@@ -284,7 +291,8 @@ verboseCheck4 = check4 verboseConfig
 --- according to the verbose configuration
 --- and a name for the test (first argument).
 --- Returns a flag whether the test was successful.
-verboseCheck5 :: (Show a, Show b, Show c, Show d, Show e) =>
+verboseCheck5 :: (Data a, Data b, Data c, Data d, Data e,
+                  Show a, Show b, Show c, Show d, Show e) =>
                  String -> (a -> b -> c -> d -> e -> Prop) -> IO Bool
 verboseCheck5 = check5 verboseConfig
 
@@ -311,7 +319,7 @@ tests config msg (t:ts) ntest nfail stamps
             msg ++ " failed\n" ++
             "Falsified by " ++ nth (ntest+1) ++ " test" ++
             (if null (args t) then "." else ".\nArguments:")
-          mapIO_ (\a -> catch (putStrLn a) (\_ -> putStrLn "???")) (args t)
+          mapM_ (\a -> catch (putStrLn a) (\_ -> putStrLn "???")) (args t)
           if null results
             then putStrLn "no result"
             else do putStrLn "Results:"
@@ -343,21 +351,23 @@ tests' config (t:ts) ntest nfail stamps
 easyCheck' :: Prop -> Result
 easyCheck' = check' easyConfig
 
-easyCheck1' :: Show a => (a -> Prop) -> Result
+easyCheck1' :: (Data a, Show a) => (a -> Prop) -> Result
 easyCheck1' = easyCheck' . suc id
 
-easyCheck2' :: (Show a, Show b) => (a -> b -> Prop) -> Result
+easyCheck2' :: (Data a, Data b, Show a, Show b) => (a -> b -> Prop) -> Result
 easyCheck2' = easyCheck' . suc (suc id)
 
-easyCheck3' :: (Show a, Show b, Show c) =>
+easyCheck3' :: (Data a, Data b, Data c, Show a, Show b, Show c) =>
                (a -> b -> c -> Prop) -> Result
 easyCheck3' = easyCheck' . suc (suc (suc id))
 
-easyCheck4' :: (Show a, Show b, Show c, Show d) =>
+easyCheck4' :: (Data a, Data b, Data c, Data d,
+                Show a, Show b, Show c, Show d) =>
                (a -> b -> c -> d -> Prop) -> Result
 easyCheck4' = easyCheck' . suc (suc (suc (suc id)))
 
-easyCheck5' :: (Show a, Show b, Show c, Show d, Show e) =>
+easyCheck5' :: (Data a, Data b, Data c, Data d, Data e,
+                Show a, Show b, Show c, Show d, Show e) =>
                (a -> b -> c -> d -> e -> Prop) -> Result
 easyCheck5' = easyCheck' . suc (suc (suc (suc (suc id))))
 
@@ -377,10 +387,10 @@ done config mesg ntest stamps status = do
   table = display
         . map entry
         . reverse
-        . sortBy (leqPair (<=) (leqList leqString))
+        . sortBy (<=) --(leqPair (<=) (leqList leqString))
         . map pairLength
         . group
-        . sortBy (leqList leqString)
+        . sortBy (<=) --(leqList leqString)
         . filter (not . null)
         $ stamps
 
@@ -408,7 +418,7 @@ leqPair leqa leqb (x1,y1) (x2,y2)
 checkPropWithMsg :: String -> IO Bool -> IO (Maybe String)
 checkPropWithMsg msg execprop = catchNDIO msg $ do
   b <- catch execprop
-             (\e -> putStrLn (msg ++ ": EXECUTION FAILURE:\n" ++ showError e)
+             (\e -> putStrLn (msg ++ ": EXECUTION FAILURE:\n" ++ show e)
                     >> return False)
   return (if b then Nothing else Just msg)
 
@@ -430,7 +440,7 @@ catchNDIO msg testact =
   else -- For PAKCS we need a different code since it is more strict
        -- in encapsulating search
        catch testact
-             (\e -> putStrLn (msg++": EXECUTION FAILURE: "++showError e) >>
+             (\e -> putStrLn (msg++": EXECUTION FAILURE: "++show e) >>
                     return (Just msg))
  where
   checkIOActions results

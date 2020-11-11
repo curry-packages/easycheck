@@ -13,7 +13,7 @@
 --- are contained in the accompanying library `Test.EasyCheckExec`.
 ---
 --- @author Sebastian Fischer (with extensions by Michael Hanus)
---- @version January 2019
+--- @version November 2020
 -------------------------------------------------------------------------
 
 module Test.EasyCheck (
@@ -39,7 +39,8 @@ module Test.EasyCheck (
 
   ) where
 
-import List                  ( (\\), delete, diagonal, nub )
+import Control.Monad        ( unless )
+import Data.List            ( (\\), delete, diagonal, nub )
 
 import Control.Findall      ( getAllValues )
 import Control.SearchTree   ( SearchTree, someSearchTree )
@@ -69,7 +70,7 @@ sameReturns a1 a2 = PropIO (testIO a1 a2)
 --- The property `toError a` is satisfied if the evaluation of the argument
 --- to normal form yields an exception.
 toError :: a -> PropIO
-toError x = toIOError (getAllValues x >>= \rs -> (id $!! rs) `seq` done)
+toError x = toIOError (getAllValues x >>= \rs -> (id $!! rs) `seq` return ())
 
 --- The property `toIOError a` is satisfied if the execution of the
 --- I/O action `a` causes an exception.
@@ -87,10 +88,10 @@ testIO act1 act2 quiet msg =
              r2 <- act2
              if r1 == r2
                then unless quiet (putStr (msg++": OK\n")) >> return Nothing
-               else do putStrLn $ msg++": FAILED!\nResults: " ++ show (r1,r2)
+               else do putStrLn $ msg ++ ": FAILED!\nResults: " ++ show (r1,r2)
                        return (Just msg)
          )
-         (\err -> do putStrLn $ msg++": EXECUTION FAILURE:\n" ++ showError err
+         (\err -> do putStrLn $ msg ++ ": EXECUTION FAILURE:\n" ++ show err
                      return (Just msg)
          )
 
@@ -204,7 +205,7 @@ cond ==> p =
 --- `solutionOf p` returns (non-deterministically) a solution
 --- of predicate `p`. This operation is useful to test solutions
 --- of predicates.
-solutionOf :: (a -> Bool) -> a
+solutionOf :: Data a => (a -> Bool) -> a
 solutionOf pred = pred x &> x where x free
 
 --- The property `is x p` is satisfied if `x` has a deterministic value
