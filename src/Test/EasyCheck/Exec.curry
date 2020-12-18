@@ -6,7 +6,7 @@
 --- the tests.
 ---
 --- @author Sebastian Fischer (with extensions by Michael Hanus)
---- @version November 2020
+--- @version December 2020
 -------------------------------------------------------------------------
 
 module Test.EasyCheck.Exec (
@@ -28,12 +28,12 @@ module Test.EasyCheck.Exec (
   checkPropWithMsg, checkPropIOWithMsg
   ) where
 
-import Control.Monad   ( unless )
-import System.IO       ( hFlush, stdout )
-import Data.List       ( group, intersperse, nub, sortBy )
+import Control.Monad               ( unless )
+import Curry.Compiler.Distribution ( curryCompiler )
+import Data.List                   ( group, intersperse, nub, sortBy )
+import System.IO                   ( hFlush, stdout )
 
-import Control.Findall                ( getAllValues )
-import Language.Curry.Distribution    ( curryCompiler )
+import Control.Findall             ( getAllValues )
 
 import Test.EasyCheck
 
