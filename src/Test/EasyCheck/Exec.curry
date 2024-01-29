@@ -6,7 +6,7 @@
 --- the tests.
 ---
 --- @author Sebastian Fischer (with extensions by Michael Hanus)
---- @version December 2020
+--- @version January 2024
 -------------------------------------------------------------------------
 
 module Test.EasyCheck.Exec (
@@ -33,7 +33,7 @@ import Curry.Compiler.Distribution ( curryCompiler )
 import Data.List                   ( group, intersperse, nub, sortBy )
 import System.IO                   ( hFlush, stdout )
 
-import Control.Findall             ( getAllValues )
+import Control.Search.AllValues    ( getAllValues )
 
 import Test.EasyCheck
 

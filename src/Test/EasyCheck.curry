@@ -13,7 +13,7 @@
 --- are contained in the accompanying library `Test.EasyCheckExec`.
 ---
 --- @author Sebastian Fischer (with extensions by Michael Hanus)
---- @version November 2020
+--- @version June 2021
 -------------------------------------------------------------------------
 
 module Test.EasyCheck (
@@ -42,9 +42,9 @@ module Test.EasyCheck (
 import Control.Monad        ( unless )
 import Data.List            ( (\\), delete, diagonal, nub )
 
-import Control.Findall      ( getAllValues )
-import Control.SearchTree   ( SearchTree, someSearchTree )
-import Control.SearchTree.Traversal
+import Control.Search.AllValues    ( getAllValues )
+import Control.Search.SearchTree   ( SearchTree, someSearchTree )
+import Control.Search.SearchTree.Traversal
 
 import Test.Prop.Types
 
